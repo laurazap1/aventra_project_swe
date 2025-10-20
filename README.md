@@ -1,70 +1,93 @@
-# Getting Started with Create React App
+# aventra_project_swe
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+swe course semester project for the year
 
-## Available Scripts
+This guide explains how our team will use Git and GitHub to collaborate on Aventra.
+Following these steps will keep our project organized and prevent us from overwriting each other’s work.
 
-In the project directory, you can run:
+🔹 Branch Strategy
 
-### `npm start`
+main → always stable, production-ready code.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+dev → shared development branch. All features are merged here first.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+feature/xxx → each new feature or task gets its own branch.
 
-### `npm test`
+Example: feature/login-signup, feature/ai-itinerary-creator
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+👉 Only merge into main when dev has been tested and stable.
 
-### `npm run build`
+🔹 Workflow Steps
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. Clone the Repo (first time only)
+   git clone <repo-url>
+   cd aventra_project_swe
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2. Create a New Branch
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Always branch off of dev:
 
-### `npm run eject`
+git checkout dev
+git pull origin dev # make sure you have the latest changes
+git checkout -b feature/your-feature-name
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. Work & Commit
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Make changes locally, then save progress with commits:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+git add .
+git commit -m "Add login form UI"
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+4. Push Your Branch
 
-## Learn More
+Send your branch to GitHub:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+git push origin feature/your-feature-name
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+5. Open a Pull Request (PR)
 
-### Code Splitting
+On GitHub, open a PR from your branch → dev.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Add teammates as reviewers.
 
-### Analyzing the Bundle Size
+After approval, merge into dev.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+6. Sync Regularly
 
-### Making a Progressive Web App
+To avoid conflicts, keep your branch updated:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+git checkout dev
+git pull origin dev
+git checkout feature/your-feature-name
+git merge dev
 
-### Advanced Configuration
+🔹 Branch Naming Conventions
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Features: feature/login-signup, feature/interactive-map
 
-### Deployment
+Bug fixes: bugfix/login-error
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Documentation: docs/readme-update
 
-### `npm run build` fails to minify
+Tests: test/authentication
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+🔹 Best Practices
+
+✅ Commit often (small commits are better).
+✅ Write meaningful commit messages (e.g., "Add map markers for events").
+✅ Never push directly to main.
+✅ Use PRs for merging (so code can be reviewed).
+✅ Pull from dev frequently to stay updated.
+
+💡 Quick Example:
+If you’re working on Notifications:
+
+git checkout dev
+git pull origin dev
+git checkout -b feature/notifications
+
+# make changes, commit, push
+
+git push origin feature/notifications
+
+# open PR → dev
