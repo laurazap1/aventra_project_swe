@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aventra Demo</title>
+</head>
+<body>
+    <h1>Aventra Demo</h1>
+
+    <h2>Add User</h2>
+    <form action="submit.php" method="post">
+        <label>Username:</label><br>
+        <input type="text" name="username" required><br>
+        <label>Email:</label><br>
+        <input type="email" name="email" required><br>
+        <label>Password:</label><br>
+        <input type="password" name="password" required><br>
+        <button type="submit" name="submit_user">Add User</button>
+    </form>
+
+    <h2>Add Trip</h2>
+    <form action="submit.php" method="post">
+        <label>User ID:</label><br>
+        <input type="number" name="user_id" required><br>
+        <label>Title:</label><br>
+        <input type="text" name="title" required><br>
+        <label>Description:</label><br>
+        <textarea name="description"></textarea><br>
+        <label>Start Date:</label><br>
+        <input type="date" name="start_date"><br>
+        <label>End Date:</label><br>
+        <input type="date" name="end_date"><br>
+        <button type="submit" name="submit_trip">Add Trip</button>
+    </form>
+</body>
+</html>
