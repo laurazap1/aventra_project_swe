@@ -27,7 +27,7 @@ function Navbar() {
           Adventra
         </h1>
 
-        {/* Desktop Links */}
+        {/* Deskto0op Links */}
         <div className="hidden md:flex space-x-8 text-gray-700 font-medium">
           <Link to="/" className="hover:text-blue-600 transition-colors duration-200">
             Home
