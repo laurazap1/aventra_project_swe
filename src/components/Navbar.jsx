@@ -1,21 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, User, LogOut, UserCircle } from "lucide-react";
+import { useAuth } from "../context/AuthContext"; // ✅ Import AuthContext
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) setUser(storedUser);
-  }, []);
+  const { user, logout } = useAuth(); // ✅ Access global user + logout function
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
+    logout(); // ✅ Logs out globally and updates Navbar instantly
     setShowDropdown(false);
     alert("Logged out successfully.");
     navigate("/");
@@ -32,7 +27,7 @@ function Navbar() {
           Adventra
         </h1>
 
-        {/* Desktop Links */}
+        {/* Deskto0op Links */}
         <div className="hidden md:flex space-x-8 text-gray-700 font-medium">
           <Link to="/" className="hover:text-blue-600 transition-colors duration-200">
             Home
