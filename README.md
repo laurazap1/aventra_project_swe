@@ -1,6 +1,6 @@
 # aventra_project_swe
 
-swe course semester project for the year
+swe course semester project for the yea
 
 This guide explains how our team will use Git and GitHub to collaborate on Aventra.
 Following these steps will keep our project organized and prevent us from overwriting each other’s work.
