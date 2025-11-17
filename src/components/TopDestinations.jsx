@@ -1,25 +1,30 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const destinations = [
   {
     city: "New York City",
     country: "United States",
     image: "/images/nyc.webp",
+    link: "/nyc",
   },
   {
     city: "Paris",
     country: "France",
     image: "/images/paris.png",
+    link: "/paris",
   },
   {
     city: "Tokyo",
     country: "Japan",
     image: "/images/tokyo.jpg",
+    link: "/tokyo",
   },
   {
     city: "Santorini",
     country: "Greece",
     image: "/images/greece.png",
+    link: "/santorini",
   },
 ];
 
@@ -36,7 +41,8 @@ export default function TopDestinations() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {destinations.map((dest, idx) => (
-          <div
+          <Link
+            to={dest.link || "#"}
             key={idx}
             className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer"
           >
@@ -58,7 +64,7 @@ export default function TopDestinations() {
 
             {/* Subtle glow outline */}
             <div className="absolute inset-0 ring-0 group-hover:ring-4 ring-blue-400/50 rounded-2xl transition-all duration-500"></div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>

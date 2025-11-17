@@ -1,20 +1,36 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser && storedUser.email === email && storedUser.password === password) {
-      alert("Login successful!");
-      navigate("/"); // Redirect to home
-    } else {
-      alert("Invalid credentials. Please try again.");
+    try {
+      const res = await axios.post("http://localhost:8080/api/auth/login", {
+        email,
+        password,
+      });
+
+      if (res.status === 200) {
+        // ✅ 1. Set login state first
+        login(res.data.user);
+
+        // ✅ 2. Wait for state to update before redirecting
+        setTimeout(() => {
+          alert(`✅ Welcome back, ${res.data.user.name}!`);
+          navigate("/");
+        }, 100);
+      }
+    } catch (error) {
+      console.error("Login error:", error.response?.data || error.message);
+      alert(error.response?.data?.message || "❌ Invalid credentials. Please try again.");
     }
   };
 
@@ -31,7 +47,9 @@ export default function Login() {
 
         {/* Form Section */}
         <div className="md:w-1/2 p-8 flex flex-col justify-center">
-          <h3 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Login to Your Account</h3>
+          <h3 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+            Login to Your Account
+          </h3>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>

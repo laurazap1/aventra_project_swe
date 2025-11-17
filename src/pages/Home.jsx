@@ -5,6 +5,10 @@ import { BedDouble, Plane, Map } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("Stays");
+  const [q, setQ] = useState('');
+  const [date, setDate] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
@@ -12,7 +16,7 @@ export default function Home() {
       <div
         className="relative h-[80vh] flex flex-col justify-center items-center text-center text-white overflow-hidden"
         style={{
-          backgroundImage: "url('/images/hero-bg.jpg')", // replace with your scenic hero image
+          backgroundImage: "url('/images/swiss.avif')", // scenic hero image
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -54,19 +58,50 @@ export default function Home() {
             <input
               type="text"
               placeholder={`Search ${activeTab.toLowerCase()}...`}
-              className="w-full md:w-1/3 p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:scale-[1.02] transition-all duration-300"
+              className="w-full md:w-1/3 p-3 border rounded-lg text-black placeholder-gray-500 focus:ring-2 focus:ring-blue-400 focus:scale-[1.02] transition-all duration-300"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              aria-label="search-query"
             />
             <input
               type="date"
-              className="w-full md:w-1/3 p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:scale-[1.02] transition-all duration-300"
+              className="w-full md:w-1/3 p-3 border rounded-lg text-black placeholder-gray-500 focus:ring-2 focus:ring-blue-400 focus:scale-[1.02] transition-all duration-300"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              aria-label="search-date"
             />
             <input
               type="number"
               placeholder="Guests"
               min="1"
-              className="w-full md:w-1/4 p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:scale-[1.02] transition-all duration-300"
+              className="w-full md:w-1/4 p-3 border rounded-lg text-black placeholder-gray-500 focus:ring-2 focus:ring-blue-400 focus:scale-[1.02] transition-all duration-300"
+              aria-label="guests"
             />
-            <button className="relative bg-blue-600 text-white px-6 py-3 rounded-lg overflow-hidden group transition-all duration-300">
+            <button
+              className="relative bg-blue-600 text-white px-6 py-3 rounded-lg overflow-hidden group transition-all duration-300"
+              onClick={async () => {
+                // build query and call backend proxy /api/search
+                setLoading(true);
+                setResults([]);
+                try {
+                  const params = new URLSearchParams();
+                  if (q) params.append('q', q);
+                  if (date) {
+                    // convert YYYY-MM-DD to ISO range for the day
+                    params.append('start', `${date}T00:00:00Z`);
+                    params.append('end', `${date}T23:59:59Z`);
+                  }
+                  const res = await fetch(`/api/search?${params.toString()}`);
+                  const data = await res.json();
+                  setResults(data.results || []);
+                } catch (err) {
+                  console.error('search failed', err);
+                  setResults([]);
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
               <span className="absolute inset-0 bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-600 opacity-0 group-hover:opacity-100 transition-all duration-300 blur-md"></span>
               <span className="relative z-10">Search</span>
             </button>
@@ -77,6 +112,34 @@ export default function Home() {
       {/* Top Destinations Section */}
       <div className="py-20 px-6 bg-white">
         <TopDestinations />
+      </div>
+
+      {/* Search results */}
+      <div className="py-6 px-6 bg-gray-50">
+        <div className="max-w-4xl mx-auto">
+          {loading && <div className="text-center">Loading results...</div>}
+          {!loading && results && results.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Search Results</h3>
+              <ul className="space-y-3">
+                {results.map((r) => (
+                  <li key={r.id} className="p-4 bg-white rounded shadow">
+                    <div className="font-semibold text-lg">{r.title}</div>
+                    <div className="text-sm text-gray-600">{r.start_time || ''} • {r.venue_name || r.venue_address || ''}</div>
+                    {r.url && (
+                      <div className="mt-2">
+                        <a className="text-blue-600" href={r.url} target="_blank" rel="noreferrer">Open on source</a>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {!loading && results && results.length === 0 && (
+            <div className="text-center text-gray-600">No results found — try a different query or date.</div>
+          )}
+        </div>
       </div>
 
       {/* Featured Experiences Section */}

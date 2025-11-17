@@ -1,0 +1,4 @@
+title,description,start_time,end_time,venue,lat,lng,url,source
+Sunset Kayak Tour,2-hour guided kayak on the lake,2025-11-25T17:00:00,2025-11-25T19:00:00,Zurich Lake,47.3700,8.5400,https://example.com/kayak,csv
+Historic Walking Tour,90-minute walking tour of Old Town,2025-11-20T10:00:00,2025-11-20T11:30:00,Old Town Zurich,47.3715,8.5421,https://example.com/walk,csv
+City Food Festival,Tasting street food from local vendors,2025-11-22T12:00:00,2025-11-22T20:00:00,Zurich Festival Grounds,47.3780,8.5450,https://example.com/foodfest,csv

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Aventra Database Frontend</title>
+</head>
+<body>
+    <h1>Aventra Database Frontend</h1>
+
+    <h2>Users</h2>
+    <table id="usersTable" border="1">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Full Name</th>
+                <th>Travel Preferences</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- User rows will be inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        // Fetch data from the Flask backend
+        async function fetchUsers() {
+            const response = await fetch('http://127.0.0.1:5000/users');
+            const users = await response.json();
+            const tbody = document.getElementById('usersTable').querySelector('tbody');
+            tbody.innerHTML = '';
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>${user.full_name}</td>
+                    <td>${user.travel_preferences}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        fetchUsers();
+    </script>
+</body>
+</html>
