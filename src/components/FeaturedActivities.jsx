@@ -64,6 +64,11 @@ export default function FeaturedActivities() {
         {filtered.map((item, idx) => (
           <div
             key={idx}
+            onClick={() => {
+              if (item.path) {
+                navigate(item.path);
+              }
+            }}
             className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer"
           >
             {/* Image */}
