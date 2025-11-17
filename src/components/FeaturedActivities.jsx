@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const allActivities = [
   {
@@ -26,6 +27,7 @@ const allActivities = [
 
 export default function FeaturedActivities() {
   const [filter, setFilter] = useState("All");
+  const navigate = useNavigate();
 
   const filtered =
     filter === "All"
