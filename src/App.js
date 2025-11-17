@@ -28,6 +28,7 @@ function App() {
         <Route path="/paris" element={<Paris />} />
         <Route path="/nyc" element={<NYC />} />
         <Route path="/santorini" element={<Santorini />} />
+        <Route path="/featured/tokyo-tour" element={<TokyoTour />} />
       </Routes>
     </Router>
   );
