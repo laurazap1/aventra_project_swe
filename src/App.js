@@ -10,6 +10,7 @@ import Tokyo from "./pages/Tokyo";
 import Paris from "./pages/Paris";
 import NYC from "./pages/NYC";
 import Santorini from "./pages/Santorini";
+import TokyoTour from "./pages/TokyoTour";
 
 
 

@@ -2,9 +2,10 @@ import React, { useState } from "react";
 
 const allActivities = [
   {
-    title: "Scenic Train Ride Through the Alps",
-    city: "Switzerland",
-    img: "/images/swisss.jpg",
+    title: "Tokyo Tower Night Walking Tour",
+    city: "Tokyo",
+    img: "/images/tokyo_tour.jpg",
+    path: "/featured/tokyo-tour",
   },
   {
     title: "Sailing Through the Norwegian Fjords",
