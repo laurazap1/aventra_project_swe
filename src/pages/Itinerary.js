@@ -213,7 +213,6 @@ export default function Itinerary() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-2xl font-bold">My Itineraries</h2>
-          <p className="text-gray-600">Create, visualize and share your itineraries</p>
         </div>
         <div className="flex gap-2">
           <button className="bg-white border px-3 py-2 rounded" onClick={startCreate}>Create manually</button>

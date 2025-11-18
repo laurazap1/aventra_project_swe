@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Itinerary from "./pages/Itinerary";
 import Reviews from "./pages/Reviews";
+import PostDetail from "./pages/PostDetail";
 import SharedItinerary from "./pages/SharedItinerary";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -22,6 +23,7 @@ function App() {
           <Route path="/itinerary" element={<Itinerary />} />
           <Route path="/shared-itinerary" element={<SharedItinerary />} />
           <Route path="/reviews" element={<Reviews />} />
+          <Route path="/reviews/:id" element={<PostDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<Profile />} />
