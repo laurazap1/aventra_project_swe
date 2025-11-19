@@ -77,7 +77,7 @@ export default function Tokyo() {
             📅 Best Time to Visit
           </h3>
           <p className="text-gray-700 text-lg">
-            Spring (March-May) for cherry blossoms 🌸 or Fall (September-November) for perfect weather! 
+            Spring (March-May) for cherry blossoms 🌸 or Fall (September-November) for perfect weather!
           </p>
         </section>
 
@@ -95,6 +95,8 @@ export default function Tokyo() {
                 title="Tokyo Travel Guide 1"
               ></iframe>
             </div>
+          </div>
+        </section>
 
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
               <iframe
@@ -230,6 +232,7 @@ export default function Tokyo() {
           <span className="text-3xl">✨</span>
           <div className="flex-1 border-t-2 border-gray-300"></div>
         </div>
+      </section>
 
       {/* TikTok Embed */}
       <section className="mb-10">
@@ -306,13 +309,13 @@ export default function Tokyo() {
           <p className="text-center text-gray-700 mb-8 text-lg">Check out these amazing Tokyo vibes! ✨</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* TikTok Card 1 */}
-            <a 
-              href="https://www.tiktok.com/t/ZP8DnXUhb/" 
-              target="_blank" 
+            <a
+              href="https://www.tiktok.com/t/ZP8DnXUhb/"
+              target="_blank"
               rel="noopener noreferrer"
               className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
             >
-              <img 
+              <img
                 src="/images/tokyo.jpg"
                 alt="Tokyo TikTok"
                 className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
@@ -323,13 +326,13 @@ export default function Tokyo() {
             </a>
 
             {/* TikTok Card 2 */}
-            <a 
-              href="https://www.tiktok.com/t/ZP8DnqHKy/" 
-              target="_blank" 
+            <a
+              href="https://www.tiktok.com/t/ZP8DnqHKy/"
+              target="_blank"
               rel="noopener noreferrer"
               className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
             >
-              <img 
+              <img
                 src="/images/tokyo_tour.jpg"
                 alt="Tokyo Tour TikTok"
                 className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
@@ -340,13 +343,13 @@ export default function Tokyo() {
             </a>
 
             {/* TikTok Card 3 */}
-            <a 
-              href="https://www.tiktok.com/t/ZP8DW6HAu/" 
-              target="_blank" 
+            <a
+              href="https://www.tiktok.com/t/ZP8DW6HAu/"
+              target="_blank"
               rel="noopener noreferrer"
               className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
             >
-              <img 
+              <img
                 src="/images/tokyo.png"
                 alt="Tokyo City TikTok"
                 className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
@@ -355,8 +358,8 @@ export default function Tokyo() {
                 <span className="text-white text-3xl font-bold">🎵 Watch on TikTok</span>
               </div>
             </a>
-          </div>
-        </section>
+            </div>
+          </section>
       </div>
     </div>
   );
