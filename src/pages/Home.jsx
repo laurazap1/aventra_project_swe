@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import TopDestinations from "../components/TopDestinations";
 import FeaturedActivities from "../components/FeaturedActivities";
 import { BedDouble, Plane, Map, X } from "lucide-react";
@@ -20,7 +20,10 @@ export default function Home() {
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
   const [showDestDropdown, setShowDestDropdown] = useState(false);
 
-  // Airport autocomplete
+  const originRef = useRef(null);
+  const destRef = useRef(null);
+
+  // Airport autocomplete - IMPROVED VERSION
   const handleAirportSearch = async (
     value,
     setter,
@@ -29,22 +32,26 @@ export default function Home() {
   ) => {
     setter(value);
 
-    if (value.length < 1) {
+    if (value.length < 2) {
       suggestionSetter([]);
+      dropdownSetter(false);
       return;
     }
 
     try {
       const res = await fetch(
-        `/api/airports/search?q=${encodeURIComponent(value)}`
+        `http://127.0.0.1:5001/api/airports/search?q=${encodeURIComponent(
+          value
+        )}`
       );
       if (!res.ok) throw new Error("Failed to fetch airports");
       const data = await res.json();
       suggestionSetter(data.airports || []);
-      dropdownSetter(true);
+      dropdownSetter(data.airports && data.airports.length > 0);
     } catch (err) {
       console.error("Airport search failed:", err);
       suggestionSetter([]);
+      dropdownSetter(false);
     }
   };
 
@@ -81,7 +88,9 @@ export default function Home() {
         params.append("date", date);
       }
 
-      const res = await fetch(`/api/flights/search?${params.toString()}`);
+      const res = await fetch(
+        `http://127.0.0.1:5001/api/flights/search?${params.toString()}`
+      );
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Search failed");
@@ -148,7 +157,7 @@ export default function Home() {
       return (
         <div className="bg-white rounded-xl shadow-xl flex flex-col md:flex-row items-center justify-between p-4 md:space-x-4 space-y-3 md:space-y-0 max-w-4xl mx-auto animate-fadeUp">
           {/* Origin Airport */}
-          <div className="relative w-full md:w-1/3">
+          <div className="relative w-full md:w-1/3" ref={originRef}>
             <input
               type="text"
               placeholder="From (city or code)"
@@ -187,7 +196,7 @@ export default function Home() {
           </div>
 
           {/* Destination Airport */}
-          <div className="relative w-full md:w-1/3">
+          <div className="relative w-full md:w-1/3" ref={destRef}>
             <input
               type="text"
               placeholder="To (city or code)"
@@ -281,6 +290,21 @@ export default function Home() {
       </div>
     );
   };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (originRef.current && !originRef.current.contains(event.target)) {
+        setShowOriginDropdown(false);
+      }
+      if (destRef.current && !destRef.current.contains(event.target)) {
+        setShowDestDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
