@@ -47,6 +47,11 @@ export default function NYC() {
         <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
           📹 YouTube Travel Guides
         </h2>
+      {/* YouTube Recommendations */}
+      <section className="mb-12">
+        <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
+          📹 YouTube Travel Guides
+        </h2>
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
             <iframe

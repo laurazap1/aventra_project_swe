@@ -52,6 +52,11 @@ export default function Paris() {
         <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
           📹 YouTube Travel Guides
         </h2>
+      {/* YouTube Recommendations */}
+      <section className="mb-12">
+        <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
+          📹 YouTube Travel Guides
+        </h2>
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
             <iframe
@@ -171,6 +176,7 @@ export default function Paris() {
           </div>
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
             <iframe
+              title="YouTube guide - Paris"
               className="w-full h-64 rounded-2xl"
               src="https://www.youtube.com/embed/TfI9nEKdGfg"
               allowFullScreen
@@ -192,56 +198,64 @@ export default function Paris() {
         <h2 className="text-3xl font-bold mb-8 text-center flex items-center justify-center gap-2">
           TikTok Recommendations 🎵
         </h2>
-        <p className="text-center text-gray-700 mb-8 text-lg">See Paris in motion! ✨</p>
+        <p className="text-center text-gray-700 mb-8 text-lg">
+          See Paris in motion! ✨
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* TikTok Card 1 */}
-          <a 
-            href="https://www.tiktok.com/t/ZTMEHkB8h/" 
-            target="_blank" 
+          <a
+            href="https://www.tiktok.com/t/ZTMEHkB8h/"
+            target="_blank"
             rel="noopener noreferrer"
             className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
           >
-            <img 
+            <img
               src="/images/paris1.jpg"
               alt="Paris TikTok 1"
               className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-              <span className="text-white text-3xl font-bold">🎵 Watch on TikTok</span>
+              <span className="text-white text-3xl font-bold">
+                🎵 Watch on TikTok
+              </span>
             </div>
           </a>
 
           {/* TikTok Card 2 */}
-          <a 
-            href="https://www.tiktok.com/t/ZTMEH5b8h/" 
-            target="_blank" 
+          <a
+            href="https://www.tiktok.com/t/ZTMEH5b8h/"
+            target="_blank"
             rel="noopener noreferrer"
             className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
           >
-            <img 
+            <img
               src="/images/paris2.jpg"
               alt="Paris TikTok 2"
               className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-              <span className="text-white text-3xl font-bold">🎵 Watch on TikTok</span>
+              <span className="text-white text-3xl font-bold">
+                🎵 Watch on TikTok
+              </span>
             </div>
           </a>
 
           {/* TikTok Card 3 */}
-          <a 
-            href="https://www.tiktok.com/t/ZTMEHDwrD/" 
-            target="_blank" 
+          <a
+            href="https://www.tiktok.com/t/ZTMEHDwrD/"
+            target="_blank"
             rel="noopener noreferrer"
             className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
           >
-            <img 
+            <img
               src="/images/paris3.jpg"
               alt="Paris TikTok 3"
               className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-              <span className="text-white text-3xl font-bold">🎵 Watch on TikTok</span>
+              <span className="text-white text-3xl font-bold">
+                🎵 Watch on TikTok
+              </span>
             </div>
           </a>
         </div>
