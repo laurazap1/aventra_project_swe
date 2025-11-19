@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ItineraryMap from '../components/ItineraryMap';
+// Map removed to avoid Leaflet runtime errors; showing simple list instead
 
 function decodePayload(encoded) {
   try {
@@ -40,7 +40,20 @@ export default function SharedItinerary() {
         <p className="text-sm text-gray-600">{it.notes || ''}</p>
       </div>
 
-      <ItineraryMap locations={it.locations || []} height={480} />
+      <div className="bg-white rounded shadow p-4 mb-4">
+        <h4 className="font-semibold mb-2">Stops (map disabled)</h4>
+        <p className="text-xs text-gray-500 mb-2">Interactive map has been disabled due to runtime issues. See the list below.</p>
+        <ul>
+          {(it.locations || []).map((l, i) => (
+            <li key={i} className="mb-2">
+              <div className="font-medium">{l.name}</div>
+              <div className="text-xs text-gray-600">{l.desc}</div>
+              <div className="text-xs text-gray-500">Lat: {l.lat || '—'} · Lng: {l.lng || '—'}</div>
+            </li>
+          ))}
+          {(it.locations || []).length === 0 && <li className="text-xs text-gray-500">No stops yet.</li>}
+        </ul>
+      </div>
 
       <ul className="mt-4">
         {(it.locations || []).map((l, i) => (

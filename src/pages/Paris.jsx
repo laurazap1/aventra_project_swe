@@ -46,6 +46,7 @@ export default function Paris() {
         <h2 className="text-2xl font-semibold mb-4">YouTube Travel Guides</h2>
         <div className="space-y-6">
           <iframe
+            title="YouTube guide - Paris"
             className="w-full h-64 rounded-lg shadow"
             src="https://www.youtube.com/embed/2XhJw8d2k6k"
             allowFullScreen

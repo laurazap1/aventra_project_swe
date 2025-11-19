@@ -49,12 +49,14 @@ export default function Tokyo() {
         <h2 className="text-2xl font-semibold mb-4">YouTube Travel Guides</h2>
         <div className="space-y-6">
           <iframe
+            title="YouTube guide - Tokyo #1"
             className="w-full h-64 rounded-lg shadow"
             src="https://www.youtube.com/embed/d-0r4VQKcK4"
             allowFullScreen
           ></iframe>
 
           <iframe
+            title="YouTube guide - Tokyo #2"
             className="w-full h-64 rounded-lg shadow"
             src="https://www.youtube.com/embed/4N8UQYdM6x4"
             allowFullScreen

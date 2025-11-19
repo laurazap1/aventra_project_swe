@@ -45,6 +45,7 @@ export default function Santorini() {
         <h2 className="text-2xl font-semibold mb-4">YouTube Travel Guides</h2>
         <div className="space-y-6">
           <iframe
+            title="YouTube guide - Santorini"
             className="w-full h-64 rounded-lg shadow"
             src="https://www.youtube.com/embed/3m3kQ-7ZtAk"
             allowFullScreen

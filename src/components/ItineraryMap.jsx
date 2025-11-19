@@ -61,8 +61,12 @@ export default function ItineraryMap({ locations = [], routes = [], height = 400
     return () => {
       // cleanup map instance if exists
       try {
-        if (mapRef.current && mapRef.current._leaflet_id) {
-          mapRef.current.remove();
+        if (mapRef.current) {
+          // prefer the remove() API but guard in case the object is partially-initialized
+          try {
+            if (typeof mapRef.current.remove === 'function') mapRef.current.remove();
+          } catch (e) {}
+          try { mapRef.current = null; } catch (e) {}
         }
       } catch (e) {}
     };
@@ -73,15 +77,56 @@ export default function ItineraryMap({ locations = [], routes = [], height = 400
     // if map already exists, remove and recreate to refresh markers
     const container = document.getElementById(idRef.current);
     if (!container) return;
-
     // remove old instance if present (for hot-reload)
-    if (container._leaflet_map) {
-      try { container._leaflet_map.remove(); } catch (e) {}
-      container._leaflet_map = null;
+    try {
+      if (mapRef.current && typeof mapRef.current.remove === 'function') {
+        try { mapRef.current.remove(); } catch (e) {}
+        mapRef.current = null;
+      }
+
+      if (container._leaflet_map && typeof container._leaflet_map.remove === 'function') {
+        try { container._leaflet_map.remove(); } catch (e) {}
+        try { container._leaflet_map = null; } catch (e) {}
+      } else if (container._leaflet_id) {
+        // container appears to have been initialized by Leaflet previously but
+        // we don't have a direct reference to the map instance. Attempt a
+        // best-effort forced cleanup so we can re-initialize cleanly.
+        try {
+          // remove any children left by Leaflet
+          container.innerHTML = '';
+        } catch (e) {}
+        try { delete container._leaflet_id; } catch (e) {}
+        try { delete container._leaflet_map; } catch (e) {}
+        console.warn('ItineraryMap: forced cleanup of previously-initialized container');
+      }
+    } catch (e) {
+      console.warn('ItineraryMap: error during pre-init cleanup', e);
     }
 
     const L = window.L;
-    const map = L.map(container).setView([0, 0], 2);
+    let map;
+    try {
+      map = L.map(container).setView([0, 0], 2);
+    } catch (err) {
+      // If Leaflet complains the container is already initialized, try a
+      // stronger cleanup: replace the DOM node with a fresh one and retry.
+      console.warn('ItineraryMap: L.map failed, attempting forced container replacement', err && err.message);
+      try {
+        const fresh = document.createElement('div');
+        // copy sizing styles so layout remains same
+        fresh.style.width = container.style.width || '100%';
+        fresh.style.height = container.style.height || container.style.minHeight || '400px';
+        fresh.id = idRef.current;
+        container.parentNode.replaceChild(fresh, container);
+        // reassign container variable to new node
+        // eslint-disable-next-line no-restricted-globals
+        // now retry
+        map = L.map(document.getElementById(idRef.current)).setView([0, 0], 2);
+      } catch (e) {
+        console.error('ItineraryMap: failed to initialize Leaflet map after forced replacement', e);
+        return;
+      }
+    }
     container._leaflet_map = map;
 
     const tile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -102,12 +147,17 @@ export default function ItineraryMap({ locations = [], routes = [], height = 400
       const lat = (typeof loc.lat === 'string') ? parseFloat(loc.lat) : loc.lat;
       const lng = (typeof loc.lng === 'string') ? parseFloat(loc.lng) : loc.lng;
       if (!loc || Number.isNaN(lat) || Number.isNaN(lng)) return;
-      const m = L.marker([lat, lng]).addTo(map);
-      const itineraryLabel = loc.itineraryName ? `<div class="text-xs text-gray-600">${loc.itineraryName}</div>` : '';
-      const popupHtml = `<div style="min-width:160px"><strong>${loc.name || ''}</strong>${itineraryLabel}<div class="text-sm">${loc.desc || ''}</div><div style="margin-top:6px"><a target='_blank' href='https://www.openstreetmap.org/directions?from=&to=${lat}%2C${lng}'>Navigate</a></div></div>`;
-      m.bindPopup(popupHtml);
-      markers.push(m);
-      latlngs.push([lat, lng]);
+      try {
+        const m = L.marker([lat, lng]).addTo(map);
+        const itineraryLabel = loc.itineraryName ? `<div class="text-xs text-gray-600">${loc.itineraryName}</div>` : '';
+        const popupHtml = `<div style="min-width:160px"><strong>${loc.name || ''}</strong>${itineraryLabel}<div class="text-sm">${loc.desc || ''}</div><div style="margin-top:6px"><a target='_blank' href='https://www.openstreetmap.org/directions?from=&to=${lat}%2C${lng}'>Navigate</a></div></div>`;
+        try { m.bindPopup(popupHtml); } catch (e) { /* ignore popup binding errors */ }
+        markers.push(m);
+        latlngs.push([lat, lng]);
+      } catch (e) {
+        // swallow individual marker errors to avoid bubbling into global handler
+        console.warn('ItineraryMap: failed to add marker', e, loc);
+      }
     });
 
     // diagnostic log
@@ -126,17 +176,33 @@ export default function ItineraryMap({ locations = [], routes = [], height = 400
       L.polyline(latlngs, { color: 'blue' }).addTo(map);
     }
 
-    if (latlngs.length === 1) {
-      map.setView(latlngs[0], 12);
-    } else if (latlngs.length > 1) {
-      map.fitBounds(latlngs, { padding: [40, 40] });
-    }
+    try {
+      if (latlngs.length === 1) {
+        try { map.setView(latlngs[0], 12); } catch (e) {}
+      } else if (latlngs.length > 1) {
+        try { map.fitBounds(latlngs, { padding: [40, 40] }); } catch (e) {}
+      }
+    } catch (e) {}
 
-    // In some layouts the map can render gray if size isn't calculated yet.
-    // Invalidate size after next paint to ensure tiles render.
-    setTimeout(() => {
-      try { map.invalidateSize(); } catch (e) {}
-    }, 200);
+    // Ensure invalidateSize runs after the map is ready and the container is laid out.
+    try {
+      if (typeof map.whenReady === 'function') {
+        map.whenReady(() => {
+          try {
+            // only call if container looks to have size
+            const c = map.getContainer && map.getContainer();
+            if (c && c.offsetWidth > 0 && typeof map.invalidateSize === 'function') {
+              try { map.invalidateSize(); } catch (e) {}
+            } else {
+              // fallback to rAF once
+              requestAnimationFrame(() => { try { if (typeof map.invalidateSize === 'function') map.invalidateSize(); } catch (e) {} });
+            }
+          } catch (e) {}
+        });
+      } else {
+        requestAnimationFrame(() => { try { if (typeof map.invalidateSize === 'function') map.invalidateSize(); } catch (e) {} });
+      }
+    } catch (e) {}
 
     mapRef.current = map;
   }

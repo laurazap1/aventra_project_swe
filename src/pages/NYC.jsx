@@ -46,6 +46,7 @@ export default function NYC() {
         <h2 className="text-2xl font-semibold mb-4">YouTube Travel Guides</h2>
         <div className="space-y-6">
           <iframe
+            title="YouTube guide - New York City"
             className="w-full h-64 rounded-lg shadow"
             src="https://www.youtube.com/embed/1k3J8Gh2QyY"
             allowFullScreen
