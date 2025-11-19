@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import ThingsToDo from '../components/ThingsToDo';
-import PlaceSearch from '../components/PlaceSearch';
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import ThingsToDo from "../components/ThingsToDo";
+import PlaceSearch from "../components/PlaceSearch";
 
-const STORAGE_PREFIX = 'aventra_itineraries_';
+const STORAGE_PREFIX = "aventra_itineraries_";
 
 function loadItinerariesForUser(userKey) {
   try {
@@ -40,46 +40,64 @@ export default function ThingsToDoPage() {
 
   function handleToggleDone(todo) {
     const items = [...itineraries];
-    const idx = selectedIndex >= 0 && selectedIndex < items.length ? selectedIndex : 0;
+    const idx =
+      selectedIndex >= 0 && selectedIndex < items.length ? selectedIndex : 0;
     if (!items[idx]) return;
     items[idx] = { ...items[idx] };
-    items[idx].todos = items[idx].todos ? items[idx].todos.map((t) => (t === todo ? { ...t, done: !t.done } : t)) : [];
+    items[idx].todos = items[idx].todos
+      ? items[idx].todos.map((t) => (t === todo ? { ...t, done: !t.done } : t))
+      : [];
     persistAndSet(items);
   }
 
   function handleRemove(todo) {
     const items = [...itineraries];
-    const idx = selectedIndex >= 0 && selectedIndex < items.length ? selectedIndex : 0;
+    const idx =
+      selectedIndex >= 0 && selectedIndex < items.length ? selectedIndex : 0;
     if (!items[idx]) return;
     items[idx] = { ...items[idx] };
-    items[idx].todos = items[idx].todos ? items[idx].todos.filter((t) => t !== todo) : [];
+    items[idx].todos = items[idx].todos
+      ? items[idx].todos.filter((t) => t !== todo)
+      : [];
     persistAndSet(items);
   }
 
   async function addPlaceToItinerary(place) {
     if (!user || !user.email) return;
     const items = [...itineraries];
-    const idx = selectedIndex >= 0 && selectedIndex < items.length ? selectedIndex : 0;
+    const idx =
+      selectedIndex >= 0 && selectedIndex < items.length ? selectedIndex : 0;
 
     // if no itinerary exists, create a default one
     if (!items[idx]) {
-      items[idx] = { title: 'My Itinerary', locations: [], todos: [] };
+      items[idx] = { title: "My Itinerary", locations: [], todos: [] };
     }
 
     const newLoc = {
       id: `loc-${Date.now()}`,
-      name: place.title || place.name || 'Place',
-      desc: place.kinds || '',
+      name: place.title || place.name || "Place",
+      desc: place.kinds || "",
       lat: place.lat || place.point?.lat || null,
       lng: place.lon || place.point?.lon || null,
       done: false,
-      notes: ''
+      notes: "",
     };
 
     items[idx] = { ...items[idx] };
-    items[idx].locations = items[idx].locations ? [...items[idx].locations, newLoc] : [newLoc];
-    const todoItem = { title: newLoc.name, xid: place.xid || null, kinds: place.kinds || null, lat: newLoc.lat, lon: newLoc.lng, done: false };
-    items[idx].todos = items[idx].todos ? [...items[idx].todos, todoItem] : [todoItem];
+    items[idx].locations = items[idx].locations
+      ? [...items[idx].locations, newLoc]
+      : [newLoc];
+    const todoItem = {
+      title: newLoc.name,
+      xid: place.xid || null,
+      kinds: place.kinds || null,
+      lat: newLoc.lat,
+      lon: newLoc.lng,
+      done: false,
+    };
+    items[idx].todos = items[idx].todos
+      ? [...items[idx].todos, todoItem]
+      : [todoItem];
 
     persistAndSet(items);
     setSelectedIndex(idx);
@@ -89,7 +107,9 @@ export default function ThingsToDoPage() {
     return (
       <div className="max-w-3xl mx-auto mt-12 p-6 bg-white rounded shadow text-center">
         <h2 className="text-2xl font-bold mb-2">Things To Do</h2>
-        <p className="text-gray-700">Please log in to view and manage saved items.</p>
+        <p className="text-gray-700">
+          Please log in to view and manage saved items.
+        </p>
       </div>
     );
   }
@@ -104,12 +124,22 @@ export default function ThingsToDoPage() {
           <div className="md:col-span-2">
             <div className="mb-3 flex items-center gap-3">
               <span className="text-sm font-medium">Suggestions:</span>
-              {['museum','hiking','food','beach','shopping','park'].map((s) => (
-                <button key={s} className="text-xs px-3 py-1 rounded-full border text-gray-700 hover:bg-gray-50" onClick={() => {
-                  const evt = new CustomEvent('aventra:setActivity', { detail: s });
-                  window.dispatchEvent(evt);
-                }}>{s}</button>
-              ))}
+              {["museum", "hiking", "food", "beach", "shopping", "park"].map(
+                (s) => (
+                  <button
+                    key={s}
+                    className="text-xs px-3 py-1 rounded-full border text-gray-700 hover:bg-gray-50"
+                    onClick={() => {
+                      const evt = new CustomEvent("aventra:setActivity", {
+                        detail: s,
+                      });
+                      window.dispatchEvent(evt);
+                    }}
+                  >
+                    {s}
+                  </button>
+                )
+              )}
             </div>
 
             <div className="mb-4">
@@ -119,20 +149,38 @@ export default function ThingsToDoPage() {
 
           <aside className="md:col-span-1">
             <div className="mb-3">
-              <label className="text-sm font-medium block mb-1">Add to itinerary</label>
-              <select value={selectedIndex} onChange={(e) => setSelectedIndex(Number(e.target.value))} className="w-full border p-2 rounded">
+              <label className="text-sm font-medium block mb-1">
+                Add to itinerary
+              </label>
+              <select
+                value={selectedIndex}
+                onChange={(e) => setSelectedIndex(Number(e.target.value))}
+                className="w-full border p-2 rounded"
+              >
                 {itineraries.map((it, i) => (
-                  <option key={i} value={i}>{it.title || `Itinerary ${i + 1}`}</option>
+                  <option key={i} value={i}>
+                    {it.title || `Itinerary ${i + 1}`}
+                  </option>
                 ))}
               </select>
             </div>
 
-            <div className="text-sm text-gray-500">You have <strong>{itineraries.length}</strong> itineraries</div>
+            <div className="text-sm text-gray-500">
+              You have <strong>{itineraries.length}</strong> itineraries
+            </div>
           </aside>
         </div>
 
         <div className="mt-6">
-          <ThingsToDo todos={(itineraries[selectedIndex] && itineraries[selectedIndex].todos) || []} onToggleDone={handleToggleDone} onRemove={handleRemove} />
+          <ThingsToDo
+            todos={
+              (itineraries[selectedIndex] &&
+                itineraries[selectedIndex].todos) ||
+              []
+            }
+            onToggleDone={handleToggleDone}
+            onRemove={handleRemove}
+          />
         </div>
       </div>
     </div>
