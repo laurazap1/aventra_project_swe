@@ -12,6 +12,7 @@ import Tokyo from "./pages/Tokyo";
 import Paris from "./pages/Paris";
 import NYC from "./pages/NYC";
 import Santorini from "./pages/Santorini";
+import ThingsToDo from "./pages/ThingsToDo";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/itinerary" element={<Itinerary />} />
+          <Route path="/things-to-do" element={<ThingsToDo />} />
           <Route path="/shared-itinerary" element={<SharedItinerary />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/reviews/:id" element={<PostDetail />} />

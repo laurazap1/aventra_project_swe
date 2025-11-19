@@ -19,8 +19,15 @@ export default function AddressAutocomplete({ value, onChange, onSelect, placeho
 
   useEffect(() => {
     function handleDoc(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setShow(false);
+      try {
+        if (!e || !e.target) return;
+        const node = containerRef.current;
+        if (node && typeof node.contains === 'function' && !node.contains(e.target)) {
+          setShow(false);
+        }
+      } catch (err) {
+        // swallow any unexpected errors from event handling to avoid breaking the app
+        console.warn('AddressAutocomplete document handler error', err);
       }
     }
     document.addEventListener('click', handleDoc);
@@ -53,10 +60,20 @@ export default function AddressAutocomplete({ value, onChange, onSelect, placeho
   }, [query]);
 
   function handleSelect(item) {
-    setQuery(item.display_name || '');
-    setSuggestions([]);
-    setShow(false);
-    if (onSelect) onSelect(item);
+    try {
+      setQuery(item.display_name || '');
+      setSuggestions([]);
+      setShow(false);
+      if (onSelect) {
+        try {
+          onSelect(item);
+        } catch (err) {
+          console.error('AddressAutocomplete onSelect callback error', err);
+        }
+      }
+    } catch (err) {
+      console.error('AddressAutocomplete handleSelect error', err);
+    }
   }
 
   return (
@@ -65,7 +82,17 @@ export default function AddressAutocomplete({ value, onChange, onSelect, placeho
         type="text"
         value={query}
         placeholder={placeholder}
-        onChange={(e) => { setQuery(e.target.value); if (onChange) onChange(e.target.value); setShow(true); }}
+        onChange={(e) => {
+          try {
+            setQuery(e.target.value);
+            if (onChange) {
+              try { onChange(e.target.value); } catch (err) { console.error('AddressAutocomplete onChange callback error', err); }
+            }
+            setShow(true);
+          } catch (err) {
+            console.error('AddressAutocomplete input change error', err);
+          }
+        }}
         onFocus={() => setShow(true)}
         className="w-full p-2 border rounded"
       />

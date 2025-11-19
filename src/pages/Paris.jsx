@@ -48,6 +48,12 @@ export default function Paris() {
           📹 YouTube Travel Guides
         </h2>
         <div className="space-y-6">
+          <iframe
+            title="YouTube guide - Paris"
+            className="w-full h-64 rounded-lg shadow"
+            src="https://www.youtube.com/embed/2XhJw8d2k6k"
+            allowFullScreen
+          ></iframe>
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
             <iframe
               className="w-full h-64 rounded-2xl"

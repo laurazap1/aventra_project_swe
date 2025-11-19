@@ -96,31 +96,23 @@ export default function Tokyo() {
               ></iframe>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-              <iframe
-                className="w-full h-64 rounded-2xl"
-                src="https://www.youtube.com/embed/AaNEl8ZeAms"
-                allowFullScreen
-                title="Tokyo Travel Guide 2"
-              ></iframe>
-            </div>
+      {/* YouTube Recommendations */}
+      <section className="mb-10">
+        <h2 className="text-2xl font-semibold mb-4">YouTube Travel Guides</h2>
+        <div className="space-y-6">
+          <iframe
+            title="YouTube guide - Tokyo #1"
+            className="w-full h-64 rounded-lg shadow"
+            src="https://www.youtube.com/embed/d-0r4VQKcK4"
+            allowFullScreen
+          ></iframe>
 
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-              <iframe
-                className="w-full h-64 rounded-2xl"
-                src="https://www.youtube.com/embed/qoReALJt8z4"
-                allowFullScreen
-                title="Tokyo Travel Guide 3"
-              ></iframe>
-            </div>
-          </div>
-        </section>
-
-        {/* Divider */}
-        <div className="flex items-center gap-4 my-12">
-          <div className="flex-1 border-t-2 border-gray-300"></div>
-          <span className="text-3xl">✨</span>
-          <div className="flex-1 border-t-2 border-gray-300"></div>
+          <iframe
+            title="YouTube guide - Tokyo #2"
+            className="w-full h-64 rounded-lg shadow"
+            src="https://www.youtube.com/embed/4N8UQYdM6x4"
+            allowFullScreen
+          ></iframe>
         </div>
 
         {/* TikTok Embed */}

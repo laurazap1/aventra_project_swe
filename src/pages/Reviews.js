@@ -1,718 +1,558 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+// Import local images
+import newyorkImg from '../assets/newyork.jpg';
+import londonImg from '../assets/london.jpg';
+import tokyoImg from '../assets/tokyo.jpg';
+import parisImg from '../assets/paris.jpg';
 
 export default function Reviews() {
-  const CURRENT_USER_ID = 1; // demo current user
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [newPost, setNewPost] = useState({
-    title: "",
-    content: "",
-    image_link: "",
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const [reviews, setReviews] = useState([]);
+  const [newReview, setNewReview] = useState({
+    username: '',
+    destination_name: '',
+    rating: '',
+    review_text: '',
+    image: null
   });
+  // showCreate replaces showForm: toggles create-post form
   const [showCreate, setShowCreate] = useState(false);
-  const [file, setFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [activePostComments, setActivePostComments] = useState({});
-  const [selectedPost, setSelectedPost] = useState(null);
   const [showMine, setShowMine] = useState(false);
+  const [, setPosting] = useState(false);
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [, setUploading] = useState(false);
+  const [, setLikesVersion] = useState(0);
 
-  const fetchPosts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = showMine ? "?user_id=1" : "";
-      const res = await fetch(`/api/posts${params}`);
-      const data = await res.json();
-      setPosts(data.posts || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  }, [showMine]);
+  // Map destination names → images + country
+  const DESTINATIONS = {
+    'new york': { name: 'New York', country: 'USA', image: newyorkImg },
+    'london': { name: 'London', country: 'United Kingdom', image: londonImg },
+    'tokyo': { name: 'Tokyo', country: 'Japan', image: tokyoImg },
+    'paris': { name: 'Paris', country: 'France', image: parisImg }
+  };
 
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
+
 
   // cleanup preview object URL when component unmounts or preview changes
   useEffect(() => {
     return () => {
       if (previewUrl) {
-        try {
-          URL.revokeObjectURL(previewUrl);
-        } catch (err) {}
+        try { URL.revokeObjectURL(previewUrl); } catch (err) { }
       }
     };
   }, [previewUrl]);
 
-  async function handleCreatePost(e) {
-    e.preventDefault();
-    if (!newPost.title) return alert("Title is required");
-    try {
-      let image_url = newPost.image_link || "";
-      // if a file was chosen, upload it first
-      if (file) {
-        setUploading(true);
-        const formData = new FormData();
-        formData.append("file", file);
-        const up = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        if (up.status === 201) {
-          const upJson = await up.json();
-          image_url = upJson.url;
-        } else {
-          const b = await up.json();
-          setUploading(false);
-          return alert("Upload failed: " + (b.error || JSON.stringify(b)));
-        }
-        setUploading(false);
-      }
+  const demoReviews = () => {
+    return [
+      { username: 'Alice', rating: 5, review_text: 'Amazing!', destination_name: 'New York' },
+      { username: 'Bob', rating: 4, review_text: 'Great time!', destination_name: 'London' },
+      { username: 'Charlie', rating: 3, review_text: 'Okay.', destination_name: 'Tokyo' },
+      { username: 'Diana', rating: 5, review_text: 'Loved it!', destination_name: 'Paris' }
+    ];
+  };
 
-      const payload = { ...newPost, image_link: image_url, user_id: 1 };
-      const res = await fetch("/api/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (res.status === 201) {
-        setNewPost({ title: "", content: "", image_link: "" });
-        if (previewUrl) {
-          try {
-            URL.revokeObjectURL(previewUrl);
-          } catch (err) {}
-          setPreviewUrl(null);
-        }
-        setFile(null);
-        setShowCreate(false);
-        fetchPosts();
+  const fetchReviews = useCallback(async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/reviews/101');
+      const data = await response.json();
+
+      // attach ids if missing
+      const payload = (data.length > 0 ? data : demoReviews()).map((r) => ({ id: r.id || Date.now() + Math.random(), ...r }));
+
+      // preserve any local-only reviews (optimistic or offline) by merging
+      const local = JSON.parse(localStorage.getItem('aventra_reviews') || '[]');
+      const merged = [
+        ...local,
+        ...payload.filter(p => !local.find(l => String(l.id) === String(p.id)))
+      ];
+      setReviews(merged);
+      localStorage.setItem('aventra_reviews', JSON.stringify(merged));
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      // On error, use local stored reviews if present, otherwise demo
+      const local = JSON.parse(localStorage.getItem('aventra_reviews') || 'null');
+      if (local && Array.isArray(local) && local.length > 0) {
+        setReviews(local);
       } else {
-        const body = await res.json();
-        alert("Error: " + (body.error || JSON.stringify(body)));
+        const payload = demoReviews().map((r) => ({ id: Date.now() + Math.random(), ...r }));
+        setReviews(payload);
+        localStorage.setItem('aventra_reviews', JSON.stringify(payload));
       }
-    } catch (err) {
-      console.error(err);
-      alert("Network error");
-      setUploading(false);
     }
-  }
+  }, []);
 
-  async function handleLikePost(post_id) {
-    try {
-      await fetch(`/api/posts/${post_id}/like`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: 1 }),
-      });
-      fetchPosts();
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  useEffect(() => {
+    fetchReviews();
+  }, [showMine, fetchReviews]);
 
-  async function toggleComments(post_id) {
-    if (activePostComments[post_id]) {
-      setActivePostComments((s) => ({ ...s, [post_id]: null }));
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setNewReview({ ...newReview, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      if (window.confirm('You must log in to submit a review. Go to login?')) navigate('/login');
       return;
     }
-    try {
-      const res = await fetch(`/api/posts/${post_id}`);
-      const data = await res.json();
-      setActivePostComments((s) => ({ ...s, [post_id]: data }));
-    } catch (e) {
-      console.error(e);
-    }
-  }
 
-  async function openPostDetail(post_id) {
-    try {
-      const res = await fetch(`/api/posts/${post_id}`);
-      const data = await res.json();
-      setSelectedPost(data);
-    } catch (e) {
-      console.error(e);
-    }
-  }
+    setPosting(true);
+    const formData = new FormData();
+    // prefer logged-in user identity
+    formData.append("username", user?.email || newReview.username || 'Anonymous');
+    formData.append("destination_name", newReview.destination_name);
+    formData.append("rating", newReview.rating);
+    formData.append("review_text", newReview.review_text);
 
-  function closePostDetail() {
-    setSelectedPost(null);
-  }
-
-  async function handleDeletePost(post_id) {
-    // eslint-disable-next-line no-restricted-globals
-    if (!confirm("Delete this post?")) return;
-    try {
-      const res = await fetch(`/api/posts/${post_id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: CURRENT_USER_ID }),
-      });
-      if (res.status === 200) {
-        closePostDetail();
-        fetchPosts();
-      } else {
-        const b = await res.json();
-        alert("Error: " + (b.error || JSON.stringify(b)));
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  async function handleEditPostSave(postId, updated) {
-    try {
-      const res = await fetch(`/api/posts/${postId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...updated, user_id: CURRENT_USER_ID }),
-      });
-      if (res.status === 200) {
-        const d = await fetch(`/api/posts/${postId}`);
-        const j = await d.json();
-        setSelectedPost(j);
-        fetchPosts();
-      } else {
-        const b = await res.json();
-        alert("Error: " + (b.error || JSON.stringify(b)));
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  async function handleDeleteComment(comment_id) {
-    // eslint-disable-next-line no-restricted-globals
-    if (!confirm("Delete this comment?")) return;
-    try {
-      const res = await fetch(`/api/comments/${comment_id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: CURRENT_USER_ID }),
-      });
-      if (res.status === 200) {
-        // refresh modal
-        if (selectedPost) {
-          const r = await fetch(`/api/posts/${selectedPost.post.post_id}`);
-          const d = await r.json();
-          setSelectedPost(d);
-          fetchPosts();
+    // If user selected a file, attempt upload to /api/upload first
+    let image_url = newReview.image || null;
+    if (file) {
+      setUploading(true);
+      try {
+        const upForm = new FormData();
+        upForm.append('file', file);
+        const upRes = await fetch('/api/upload', { method: 'POST', body: upForm });
+        if (upRes.ok) {
+          const upJson = await upRes.json();
+          image_url = upJson.url || null;
+        } else {
+          console.warn('Upload failed', upRes.status);
         }
-      } else {
-        const b = await res.json();
-        alert("Error: " + (b.error || JSON.stringify(b)));
+      } catch (err) {
+        console.warn('Upload request failed', err);
+      } finally {
+        setUploading(false);
       }
-    } catch (e) {
-      console.error(e);
     }
-  }
 
-  async function handleEditCommentSave(comment_id, updatedText) {
+    if (image_url && typeof image_url === 'string') {
+      formData.append('image_link', image_url);
+    } else if (newReview.image) {
+      // append raw data URL or file if available
+      if (newReview.image instanceof File) formData.append('image', newReview.image);
+      else formData.append('image_link', newReview.image);
+    }
+
+    // If an image file was provided, convert to data URL so it can be shown immediately and persisted locally
+    const toDataURL = (file) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    let imageData = null;
     try {
-      const res = await fetch(`/api/comments/${comment_id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: CURRENT_USER_ID,
-          comment_text: updatedText,
-        }),
-      });
-      if (res.status === 200) {
-        if (selectedPost) {
-          const r = await fetch(`/api/posts/${selectedPost.post.post_id}`);
-          const d = await r.json();
-          setSelectedPost(d);
-          fetchPosts();
-        }
-      } else {
-        const b = await res.json();
-        alert("Error: " + (b.error || JSON.stringify(b)));
+      if (file) {
+        imageData = await toDataURL(file);
+      } else if (newReview.image && newReview.image instanceof File) {
+        imageData = await toDataURL(newReview.image);
       }
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.warn('Could not read image file for preview', err);
+      imageData = null;
     }
-  }
 
-  async function handleCreateComment(post_id, formState, resetFn) {
-    if (!formState.comment_text) return alert("Comment is required");
-    if (formState.image_link && !/^(https?:\/\/)/i.test(formState.image_link)) {
-      return alert("Comment image URL must start with http:// or https://");
-    }
+    // Optimistic local update so UI is responsive
+    const usernameForPost = user?.firstName || user?.name || user?.username || user?.email || newReview.username || 'Anonymous';
+    const newItem = {
+      id: Date.now(),
+      username: usernameForPost,
+      user_id: user?.id ?? null,
+      destination_name: newReview.destination_name,
+      rating: newReview.rating,
+      review_text: newReview.review_text,
+      image: imageData,
+      image_link: image_url
+    };
+    const next = [newItem, ...reviews];
+    setReviews(next);
+    localStorage.setItem('aventra_reviews', JSON.stringify(next));
+
+    // Try to POST to server but swallow network errors to avoid uncaught exceptions
     try {
-      const res = await fetch(`/api/posts/${post_id}/comments`, {
+      await fetch("http://127.0.0.1:5000/reviews", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formState, user_id: 1 }),
+        body: formData
       });
-      if (res.status === 201) {
-        resetFn();
-        // refresh comments for this post
-        const res2 = await fetch(`/api/posts/${post_id}`);
-        const data2 = await res2.json();
-        setActivePostComments((s) => ({ ...s, [post_id]: data2 }));
-        fetchPosts();
-      } else {
-        const b = await res.json();
-        alert("Error: " + (b.error || JSON.stringify(b)));
-      }
-    } catch (e) {
-      console.error(e);
+      // refresh from server if successful
+      fetchReviews();
+    } catch (err) {
+      console.warn('Review POST failed (server unreachable). Kept review locally.', err);
+    } finally {
+      setPosting(false);
     }
-  }
+
+    setNewReview({ username: '', destination_name: '', rating: '', review_text: '', image: null });
+    // cleanup preview and file
+    if (previewUrl) { try { URL.revokeObjectURL(previewUrl); } catch (err) {} setPreviewUrl(null); }
+    setFile(null);
+  };
+
+  // Helper to extract a friendly first name from stored username/email
+  const getFirstName = (nameOrEmail) => {
+    if (!nameOrEmail) return 'Guest';
+    if (typeof nameOrEmail === 'object') {
+      return nameOrEmail.firstName || nameOrEmail.name || nameOrEmail.username || nameOrEmail.email || 'Guest';
+    }
+    const s = String(nameOrEmail);
+    if (s.includes('@')) {
+      const before = s.split('@')[0];
+      // split on non-letters
+      const parts = before.split(/[^a-zA-Z]+/).filter(Boolean);
+      if (parts.length > 0) return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+      return before;
+    }
+    // if contains space, take first token
+    if (s.includes(' ')) return s.split(' ')[0];
+    return s;
+  };
+
+  // Helper to determine whether current user owns a review
+  const isOwner = (review) => {
+    if (!user || !review) return false;
+    // prefer numeric user_id comparison if available
+    if (review.user_id != null && user.id != null) {
+      try {
+        return Number(review.user_id) === Number(user.id);
+      } catch (e) {
+        // fall through to string matching
+      }
+    }
+    const variants = [user.email, user.username, user.firstName, user.name].filter(Boolean).map(String);
+    return variants.includes(String(review.username));
+  };
+
+  // Require login helper (navigates to login if user cancels)
+  const requireLogin = () => {
+    if (!user) {
+      if (window.confirm('You must be logged in to do that. Go to login?')) navigate('/login');
+      return false;
+    }
+    return true;
+  };
+
+  // Toggle like/unlike for a review (optimistic, stored in localStorage)
+  const toggleLike = async (review, e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (!requireLogin()) return;
+    const id = review.id;
+    const userId = user.email || user.id || 'anon';
+    let arr = [];
+    try { arr = JSON.parse(localStorage.getItem(`aventra_likes_${id}`)) || []; } catch (err) { arr = []; }
+    const has = arr.includes(userId);
+    const nextArr = has ? arr.filter(x => x !== userId) : [...arr, userId];
+    try { localStorage.setItem(`aventra_likes_${id}`, JSON.stringify(nextArr)); } catch (err) { console.warn('Could not save likes locally', err); }
+    // bump version so UI re-renders
+    setLikesVersion(v => v + 1);
+
+    // best-effort server sync
+    try {
+      await fetch(`/api/posts/${id}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action: has ? 'unlike' : 'like' })
+      });
+    } catch (err) {
+      // ignore server errors — local state remains authoritative for now
+      console.warn('Like sync failed', err);
+    }
+  };
+
+  // Likes count helper: check common fields first, otherwise fallback to localStorage key `aventra_likes_<id>`
+  const getLikesCount = (review) => {
+    if (!review) return 0;
+    // common server-side shapes
+    if (Array.isArray(review.likes)) return review.likes.length;
+    if (typeof review.like_count === 'number') return review.like_count;
+    if (typeof review.likes_count === 'number') return review.likes_count;
+
+    try {
+      const ls = localStorage.getItem(`aventra_likes_${review.id}`);
+      if (!ls) return 0;
+      const parsed = JSON.parse(ls);
+      if (Array.isArray(parsed)) return parsed.length;
+    } catch (e) {
+      // ignore parse errors
+    }
+    return 0;
+  };
+
+  // Delete a post locally and attempt server delete
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('Delete this post?')) return;
+    const next = reviews.filter(r => String(r.id) !== String(postId));
+    setReviews(next);
+    localStorage.setItem('aventra_reviews', JSON.stringify(next));
+    try {
+      await fetch(`/api/posts/${postId}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+    } catch (err) {
+      console.warn('Server delete failed', err);
+    }
+  };
+
+  // Edit a post via simple prompt and save locally and to server
+  const handleEditPostSave = async (postId) => {
+    const p = reviews.find(r => String(r.id) === String(postId));
+    if (!p) return;
+    const newText = window.prompt('Edit your review text', p.review_text || '');
+    if (newText === null) return; // cancelled
+    const newRating = window.prompt('Edit rating (1-5)', p.rating || '');
+    const newDest = window.prompt('Edit destination name', p.destination_name || '');
+    const updated = { ...p, review_text: newText, rating: newRating, destination_name: newDest };
+    const next = reviews.map(r => String(r.id) === String(postId) ? updated : r);
+    setReviews(next);
+    localStorage.setItem('aventra_reviews', JSON.stringify(next));
+    try {
+      await fetch(`/api/posts/${postId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+    } catch (err) {
+      console.warn('Server edit failed', err);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 pt-28 py-8 px-4">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-extrabold">Traveler Reviews</h2>
-          <div className="flex gap-3">
+    <div className="container mx-auto text-center mt-20 px-4">
+      <h2 className="text-4xl font-bold mb-4">Traveler Reviews</h2>
+
+      {/* Submit Review Section (toggle) */}
+      <div className="bg-white shadow-lg rounded-lg p-6 mb-6 max-w-xl mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-2xl font-semibold">Submit a Review</h3>
+          <div className="flex items-center gap-3">
+            {/* My reviews toggle - icon + subtle label */}
             <button
-              className="bg-white border px-3 py-2 rounded shadow hover:scale-105 transition"
-              onClick={() => {
-                setShowMine((s) => !s);
-                setTimeout(fetchPosts, 10);
-              }}
+              onClick={() => setShowMine(s => !s)}
+              aria-pressed={showMine}
+              className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg transition-all ${showMine ? 'bg-blue-600 text-white shadow' : 'bg-white text-blue-600 border'}`}
+              title={showMine ? 'Showing only your reviews' : 'Show only your reviews'}
             >
-              {showMine ? "All posts" : "My posts"}
+              {/* user icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" className="opacity-90">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V22h19.2v-2.8c0-3.2-6.4-4.8-9.6-4.8z" />
+              </svg>
+              <span className="hidden sm:inline text-sm font-medium">{showMine ? 'Mine' : 'All'}</span>
             </button>
+
+            {/* Primary FAB to open/close the create form */}
             <button
-              className="bg-blue-600 text-white px-4 py-2 rounded-full shadow hover:scale-105 transition"
-              onClick={() => setShowCreate((s) => !s)}
+              onClick={() => setShowCreate(c => !c)}
+              aria-expanded={showCreate}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg transform transition ${showCreate ? 'bg-red-500 rotate-45' : 'bg-green-600 hover:scale-105'}`}
+              title={showCreate ? 'Close form' : 'Add a review'}
             >
-              {showCreate ? "Cancel" : "Create a post"}
+              {showCreate ? (
+                // X icon (close)
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                  <path d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12l-4.89 4.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4z" />
+                </svg>
+              ) : (
+                // plus icon
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                  <path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
 
         {showCreate && (
-          <form
-            onSubmit={handleCreatePost}
-            className="mb-6 bg-white rounded-xl shadow p-4"
+          <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+
+          {/* Name */}
+          <input
+            type="text"
+            name="username"
+            placeholder="Your Name"
+            value={newReview.username}
+            onChange={handleChange}
+            required
+            className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+
+          {/* Destination Name (TEXT BOX) */}
+          <input
+            type="text"
+            name="destination_name"
+            placeholder="Destination Name (e.g., Paris)"
+            value={newReview.destination_name}
+            onChange={handleChange}
+            required
+            className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+
+          {/* Rating (DROPDOWN) */}
+          <select
+            name="rating"
+            value={newReview.rating}
+            onChange={handleChange}
+            required
+            className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
-                <input
-                  className="w-full mb-2 p-3 border rounded text-black"
-                  placeholder="Title"
-                  value={newPost.title}
-                  onChange={(e) =>
-                    setNewPost({ ...newPost, title: e.target.value })
+            <option value="">Rating (1–5)</option>
+            <option value="1">⭐ 1</option>
+            <option value="2">⭐⭐ 2</option>
+            <option value="3">⭐⭐⭐ 3</option>
+            <option value="4">⭐⭐⭐⭐ 4</option>
+            <option value="5">⭐⭐⭐⭐⭐ 5</option>
+          </select>
+
+          {/* Review */}
+          <textarea
+            name="review_text"
+            placeholder="Your Review"
+            value={newReview.review_text}
+            onChange={handleChange}
+            required
+            className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+
+          {/* Upload Image with preview + optional URL */}
+          <div className="text-left">
+            <label className="block mb-1 font-medium">Upload a Picture</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const f = e.target.files[0] || null;
+                if (f) {
+                  // create a temporary object URL for preview
+                  const url = URL.createObjectURL(f);
+                  // revoke previous preview if exists
+                  if (previewUrl) {
+                    try { URL.revokeObjectURL(previewUrl); } catch (err) { }
                   }
-                />
-                <textarea
-                  className="w-full mb-2 p-3 border rounded text-black"
-                  placeholder="Share your experience"
-                  value={newPost.content}
-                  onChange={(e) =>
-                    setNewPost({ ...newPost, content: e.target.value })
+                  setPreviewUrl(url);
+                  setFile(f);
+                } else {
+                  if (previewUrl) {
+                    try { URL.revokeObjectURL(previewUrl); } catch (err) { }
                   }
-                />
-                <div className="flex gap-2">
-                  <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded"
-                    type="submit"
-                  >
-                    {uploading ? "Uploading..." : "Post"}
-                  </button>
-                  <button
-                    type="button"
-                    className="px-4 py-2 border rounded"
-                    onClick={() => {
-                      setNewPost({ title: "", content: "", image_link: "" });
-                      if (previewUrl) {
-                        try {
-                          URL.revokeObjectURL(previewUrl);
-                        } catch (err) {}
-                        setPreviewUrl(null);
-                      }
-                      setFile(null);
-                    }}
-                  >
-                    Clear
-                  </button>
-                </div>
+                  setPreviewUrl(null);
+                  setFile(null);
+                }
+              }}
+              className="border p-3 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+
+            {previewUrl && (
+              <div className="mt-3">
+                <div className="text-xs text-gray-500 mb-1">Selected image preview</div>
+                <img src={previewUrl} alt="preview" className="w-full h-40 object-cover rounded" />
+                <div className="text-xs text-gray-500 mt-1">{file ? file.name : ''} {file ? `• ${(file.size/1024|0)} KB` : ''}</div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Image (optional)
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const f = e.target.files[0] || null;
-                    if (f) {
-                      // create a temporary object URL for preview
-                      const url = URL.createObjectURL(f);
-                      // revoke previous preview if exists
-                      if (previewUrl) {
-                        try {
-                          URL.revokeObjectURL(previewUrl);
-                        } catch (err) {}
-                      }
-                      setPreviewUrl(url);
-                      setFile(f);
-                    } else {
-                      if (previewUrl) {
-                        try {
-                          URL.revokeObjectURL(previewUrl);
-                        } catch (err) {}
-                      }
-                      setPreviewUrl(null);
-                      setFile(null);
-                    }
-                  }}
-                  className="w-full"
-                />
-                {previewUrl && (
-                  <div className="mt-2">
-                    <div className="text-xs text-gray-500 mb-1">
-                      Selected image preview
+            )}
+
+            <div className="text-xs text-gray-500 mt-2">Or paste an image URL</div>
+            <input className="w-full mt-1 p-2 border rounded text-black" placeholder="Image URL (optional)" value={newReview.image || ''} onChange={(e) => setNewReview({ ...newReview, image: e.target.value })} />
+          </div>
+
+          <button
+            type="submit"
+            className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
+          >
+            Submit Review
+          </button>
+        </form>
+        )}
+      </div>
+
+      {/* Existing Reviews */}
+      <div>
+        <h3 className="text-2xl font-semibold mb-6">Existing Reviews</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+          {reviews
+            .filter(r => !showMine || (user && isOwner(r)))
+            .map((review, index) => {
+            const key = review.destination_name?.toLowerCase();
+            const dest = DESTINATIONS[key] || {
+              name: review.destination_name,
+              country: "Unknown",
+              image: "https://source.unsplash.com/600x400/?travel"
+            };
+
+            return (
+              <Link key={review.id} to={`/reviews/${review.id}`} className="block bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
+                <div className="relative">
+                        <img
+                          src={review.image || review.image_link || dest.image}
+                          className="w-full h-48 object-cover"
+                          alt={dest.name}
+                          onError={(e) => { e.currentTarget.src = dest.image; console.warn('Failed to load review image for id', review.id); }}
+                        />
+                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white px-3 py-1 rounded-lg text-sm font-semibold">
+                      {getFirstName(review.username)}
                     </div>
-                    <img
-                      src={previewUrl}
-                      alt="preview"
-                      className="w-full h-40 object-cover rounded"
-                    />
-                    <div className="text-xs text-gray-500 mt-1">
-                      {file ? file.name : ""}{" "}
-                      {file ? `• ${(file.size / 1024) | 0} KB` : ""}
+                </div>
+
+                <div className="px-5 py-3 text-left relative">
+                  <h4 className="text-lg font-semibold">{dest.name}</h4>
+                  <p className="text-gray-500 text-sm">{dest.country}</p>
+                </div>
+
+                <div className="px-5 pb-5 text-left relative">
+                  <p className="text-yellow-500 font-bold mb-2">⭐ {review.rating}/5</p>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-gray-700 truncate">{review.review_text}</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      {/* clickable heart + likes count (prevent link navigation) */}
+                      <button
+                        onClick={(e) => toggleLike(review, e)}
+                        aria-pressed={(user && (() => {
+                          try { const ls = JSON.parse(localStorage.getItem(`aventra_likes_${review.id}`) || '[]'); return ls.includes(user.email || user.id || 'anon'); } catch (e) { return false; }
+                        })())}
+                        className="flex items-center gap-2 focus:outline-none"
+                        title="Like"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" className={`transition ${((() => { try { const ls = JSON.parse(localStorage.getItem(`aventra_likes_${review.id}`) || '[]'); return ls.includes(user?.email || user?.id || 'anon'); } catch (e) { return false; } })()) ? 'text-red-500' : 'text-gray-400'}`}>
+                          <path d="M12 21s-6.716-4.35-9.24-7.02C-.02 11.2 1.1 6.7 4.6 5.17 7.16 3.98 9.57 5 12 7.01c2.43-2.01 4.84-3.03 7.4-1.84 3.5 1.53 4.62 6.03 1.84 8.81C18.716 16.65 12 21 12 21z" />
+                        </svg>
+                        <span className="font-medium">{getLikesCount(review)}</span>
+                      </button>
                     </div>
                   </div>
-                )}
-                <div className="text-xs text-gray-500 mt-2">
-                  Or paste an image URL
-                </div>
-                <input
-                  className="w-full mt-1 p-2 border rounded text-black"
-                  placeholder="Image URL (optional)"
-                  value={newPost.image_link}
-                  onChange={(e) =>
-                    setNewPost({ ...newPost, image_link: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-          </form>
-        )}
 
-        {/* barrier between create form and posts */}
-        <div className="my-6">
-          <div className="w-full border-t border-gray-200" />
-        </div>
-
-        {loading && <div className="text-center">Loading...</div>}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map((p) => (
-            <div
-              key={p.post_id}
-              className="bg-white rounded-xl shadow-lg p-4 flex flex-col cursor-pointer"
-              onClick={() => openPostDetail(p.post_id)}
-            >
-              <div className="mb-3">
-                <img
-                  src={p.image_link || "/placeholder-image"}
-                  alt="post"
-                  className="w-full h-40 object-cover rounded"
-                  onError={(e) => {
-                    e.currentTarget.src = "/placeholder-image";
-                  }}
-                />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-lg">{p.title}</h4>
-                <div className="text-sm text-gray-600 mb-2">
-                  by {p.username ? p.username : `user #${p.user_id}`} •{" "}
-                  {p.created_at ? new Date(p.created_at).toLocaleString() : ""}
-                </div>
-                <p className="text-gray-700 mb-3">{p.content}</p>
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex gap-2 items-center">
-                  <button
-                    className="px-3 py-1 border rounded"
-                    onClick={() => handleLikePost(p.post_id)}
-                  >
-                    Like
-                  </button>
-                  <button
-                    className="px-3 py-1 border rounded"
-                    onClick={() => toggleComments(p.post_id)}
-                  >
-                    {activePostComments[p.post_id] ? "Hide" : "Comments"}
-                  </button>
-                </div>
-                <div className="text-sm text-gray-600">
-                  👍 {p.likes || 0} • 💬 {p.comments || 0}
-                </div>
-              </div>
-
-              {activePostComments[p.post_id] && (
-                <div className="mt-3 border-t pt-3">
-                  <h5 className="font-medium mb-2">Comments</h5>
-                  {activePostComments[p.post_id].comments &&
-                    activePostComments[p.post_id].comments.length === 0 && (
-                      <div className="text-sm text-gray-600">
-                        No comments yet
-                      </div>
-                    )}
-                  {activePostComments[p.post_id].comments &&
-                    activePostComments[p.post_id].comments.map((c) => (
-                      <div key={c.comment_id} className="mb-2">
-                        <div className="text-sm text-gray-700">
-                          {c.comment_text}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          by {c.username ? c.username : `user #${c.user_id}`} •{" "}
-                          {c.created_at
-                            ? new Date(c.created_at).toLocaleString()
-                            : ""}{" "}
-                          • {c.rating ? `★ ${c.rating}` : ""}
-                        </div>
-                        <div>
-                          <img
-                            src={c.image_link || "/placeholder-image"}
-                            alt="comment"
-                            className="w-32 mt-1 rounded"
-                            onError={(e) => {
-                              e.currentTarget.src = "/placeholder-image";
-                            }}
-                          />
-                        </div>
-                        {/* render replies */}
-                        {c.replies && c.replies.length > 0 && (
-                          <div className="ml-4 mt-2">
-                            {c.replies.map((r) => (
-                              <div key={r.comment_id} className="mb-1">
-                                <div className="text-sm text-gray-700">
-                                  ↳ {r.comment_text}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  by{" "}
-                                  {r.username
-                                    ? r.username
-                                    : `user #${r.user_id}`}{" "}
-                                  •{" "}
-                                  {r.created_at
-                                    ? new Date(r.created_at).toLocaleString()
-                                    : ""}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-
-                  <CommentForm
-                    postId={p.post_id}
-                    onSubmit={handleCreateComment}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Post detail modal */}
-        {selectedPost && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-            <div className="bg-white max-w-3xl w-full rounded-xl shadow-lg p-4 max-h-[90vh] overflow-auto">
-              <div className="flex justify-between items-start">
-                <h3 className="text-xl font-semibold">
-                  {selectedPost.post.title}
-                </h3>
-                <div className="flex items-center gap-2">
-                  {selectedPost.post.user_id === CURRENT_USER_ID && (
-                    <button
-                      className="text-sm text-red-600 border px-2 py-1 rounded hover:bg-red-50"
-                      onClick={() =>
-                        handleDeletePost(selectedPost.post.post_id)
-                      }
-                    >
-                      Delete
-                    </button>
-                  )}
-                  <button className="text-gray-500" onClick={closePostDetail}>
-                    Close
-                  </button>
-                </div>
-              </div>
-              <div className="mt-3">
-                <img
-                  src={selectedPost.post.image_link || "/placeholder-image"}
-                  alt="post"
-                  className="w-full h-60 object-cover rounded"
-                  onError={(e) => {
-                    e.currentTarget.src = "/placeholder-image";
-                  }}
-                />
-                <div className="text-sm text-gray-600 mt-2">
-                  by{" "}
-                  {selectedPost.post.username
-                    ? selectedPost.post.username
-                    : `user #${selectedPost.post.user_id}`}
-                </div>
-                <p className="mt-2 text-gray-800">
-                  {selectedPost.post.content}
-                </p>
-              </div>
-              <div className="mt-4 border-t pt-3">
-                <h4 className="font-medium mb-2">Comments</h4>
-                {selectedPost.comments &&
-                  selectedPost.comments.length === 0 && (
-                    <div className="text-sm text-gray-600">No comments yet</div>
-                  )}
-                {selectedPost.comments &&
-                  selectedPost.comments.map((c) => (
-                    <div key={c.comment_id} className="mb-3">
-                      <div className="text-sm font-medium">
-                        {c.username ? c.username : `user #${c.user_id}`}
-                      </div>
-                      <div className="text-sm text-gray-700">
-                        {c.comment_text}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {c.created_at
-                          ? new Date(c.created_at).toLocaleString()
-                          : ""}
-                      </div>
-                      {c.replies && c.replies.length > 0 && (
-                        <div className="ml-4 mt-2">
-                          {c.replies.map((r) => (
-                            <div key={r.comment_id} className="mb-2">
-                              <div className="text-sm font-medium">
-                                {r.username ? r.username : `user #${r.user_id}`}
-                              </div>
-                              <div className="text-sm text-gray-700">
-                                {r.comment_text}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <ReplyForm
-                        postId={selectedPost.post.post_id}
-                        parentId={c.comment_id}
-                        onReply={async () => {
-                          const res = await fetch(
-                            `/api/posts/${selectedPost.post.post_id}`
-                          );
-                          const data = await res.json();
-                          setSelectedPost(data);
-                          fetchPosts();
-                        }}
-                      />
+                  {/* actions moved to info area bottom-right: delete then edit (swap order) */}
+                  {showMine && isOwner(review) && (
+                    <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEditPostSave(review.id); }}
+                        title="Edit"
+                        className="w-8 h-8 flex items-center justify-center text-gray-700 hover:bg-gray-100 rounded"
+                      >
+                        {/* pencil icon */}
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeletePost(review.id); }}
+                        title="Delete"
+                        className="w-8 h-8 flex items-center justify-center text-red-600 hover:bg-red-100 rounded"
+                      >
+                        {/* X (close) icon for delete */}
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                          <path d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12l-4.89 4.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4z" />
+                        </svg>
+                      </button>
                     </div>
-                  ))}
-                <div className="mt-2">
-                  <h5 className="font-medium">Add a comment</h5>
-                  <CommentForm
-                    postId={selectedPost.post.post_id}
-                    onSubmit={async (postId, form, reset) => {
-                      await handleCreateComment(postId, form, reset);
-                      const res = await fetch(`/api/posts/${postId}`);
-                      const data = await res.json();
-                      setSelectedPost(data);
-                      fetchPosts();
-                    }}
-                  />
+                  )}
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
+              </Link>
+            );
+          })}
+
+        </div>
       </div>
     </div>
-  );
-}
-
-function CommentForm({ postId, onSubmit }) {
-  const [form, setForm] = useState({
-    comment_text: "",
-    rating: "",
-    image_link: "",
-  });
-  function reset() {
-    setForm({ comment_text: "", rating: "", image_link: "" });
-  }
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(postId, form, reset);
-      }}
-      className="mt-2"
-    >
-      <textarea
-        className="w-full mb-2 p-2 border rounded"
-        placeholder="Write a comment"
-        value={form.comment_text}
-        onChange={(e) => setForm({ ...form, comment_text: e.target.value })}
-      />
-      <div className="flex gap-2">
-        <input
-          className="p-2 border rounded"
-          placeholder="Image URL (optional)"
-          value={form.image_link}
-          onChange={(e) => setForm({ ...form, image_link: e.target.value })}
-        />
-        <input
-          className="p-2 border rounded w-24"
-          placeholder="Rating"
-          value={form.rating}
-          onChange={(e) => setForm({ ...form, rating: e.target.value })}
-        />
-        <button
-          className="px-3 py-1 bg-green-600 text-white rounded"
-          type="submit"
-        >
-          Comment
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function ReplyForm({ postId, parentId, onReply }) {
-  const [text, setText] = useState("");
-  async function submit(e) {
-    e.preventDefault();
-    if (!text) return;
-    try {
-      const res = await fetch(`/api/posts/${postId}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: 1,
-          comment_text: text,
-          parent_comment_id: parentId,
-        }),
-      });
-      if (res.status === 201) {
-        setText("");
-        if (onReply) onReply();
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  return (
-    <form onSubmit={submit} className="mt-2">
-      <input
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Reply..."
-        className="w-full p-2 border rounded"
-      />
-      <div className="text-right mt-1">
-        <button className="px-3 py-1 bg-gray-200 rounded" type="submit">
-          Reply
-        </button>
-      </div>
-    </form>
-  );
+  )
 }
