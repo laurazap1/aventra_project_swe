@@ -188,13 +188,35 @@ export default function ThingsToDo({ initialItineraryIndex = 0, todos: propTodos
       )}
 
       {!isListOnly && (
-        <div className="mb-3">
+        <div className="mb-3 flex items-center gap-2">
           <label className="text-sm mr-2">Select itinerary:</label>
           <select value={selectedIndex} onChange={(e) => setSelectedIndex(Number(e.target.value))} className="border p-2 rounded">
             {itineraries.map((it, i) => (
               <option key={i} value={i}>{it.title || `Itinerary ${i + 1}`}</option>
             ))}
           </select>
+          <button
+            title="Delete itinerary"
+            aria-label="Delete itinerary"
+            className="px-3 py-2 border rounded text-red-600 hover:bg-red-50"
+            onClick={() => {
+              // delete currently selected itinerary with confirmation
+              const idx = selectedIndex >= 0 && selectedIndex < (itineraries || []).length ? selectedIndex : -1;
+              if (idx === -1) return;
+              const name = itineraries[idx] && itineraries[idx].title ? itineraries[idx].title : `Itinerary ${idx + 1}`;
+              // eslint-disable-next-line no-restricted-globals
+              if (!window.confirm(`Delete itinerary "${name}"? This cannot be undone.`)) return;
+              const items = [...(itineraries || [])];
+              items.splice(idx, 1);
+              persist(items);
+              const newIndex = items.length === 0 ? 0 : Math.max(0, Math.min(items.length - 1, idx === 0 ? 0 : idx - 1));
+              setSelectedIndex(newIndex);
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" className="inline-block">
+              <path d="M3 6h18v2H3V6zm2 3h14l-1 12H6L5 9zm3-6h6v2H8V3z" />
+            </svg>
+          </button>
         </div>
       )}
 

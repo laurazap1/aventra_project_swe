@@ -16,10 +16,25 @@ export default class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      // Try to show last captured global error (set by src/index.js handlers) to aid debugging
+      let lastGlobal = null;
+      try {
+        const raw = localStorage.getItem('aventra_last_runtime_error');
+        if (raw) lastGlobal = JSON.parse(raw);
+      } catch (e) {
+        // ignore
+      }
+
       return (
         <div className="max-w-3xl mx-auto mt-12 p-6 bg-red-50 border border-red-200 rounded">
           <h3 className="text-lg font-semibold text-red-700">Something went wrong</h3>
           <pre className="text-sm text-red-700 mt-2 whitespace-pre-wrap">{String(this.state.error && this.state.error.toString())}</pre>
+          {lastGlobal && (
+            <div className="mt-3 p-3 bg-white border rounded text-sm text-gray-800">
+              <div className="font-medium">Last captured runtime error (dev):</div>
+              <pre className="text-xs mt-2 whitespace-pre-wrap">{JSON.stringify(lastGlobal, null, 2)}</pre>
+            </div>
+          )}
           <div className="mt-3 text-sm text-gray-600">Try reloading the page or contact support with the error above.</div>
         </div>
       );
