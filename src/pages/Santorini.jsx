@@ -46,11 +46,6 @@ export default function Santorini() {
         <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
           📹 YouTube Travel Guides
         </h2>
-      {/* YouTube Recommendations */}
-      <section className="mb-12">
-        <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
-          📹 YouTube Travel Guides
-        </h2>
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
             <iframe
@@ -70,7 +65,6 @@ export default function Santorini() {
           </div>
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
             <iframe
-              title="YouTube guide - Santorini"
               className="w-full h-64 rounded-2xl"
               src="https://www.youtube.com/embed/125nMc_Nz8s"
               allowFullScreen
