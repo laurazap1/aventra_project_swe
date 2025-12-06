@@ -116,12 +116,14 @@ export default function Home() {
 
     try {
       if (activeTab === "Stays") {
-        // Hotel search
+        // Hotel search - DIRECT FLASK CALL
         const params = new URLSearchParams();
         if (q) params.append("location", q);
         if (date) params.append("checkin", date);
 
-        const res = await fetch(`/api/hotels/search?${params.toString()}`);
+        const res = await fetch(
+          `http://127.0.0.1:5001/api/hotels/search?${params.toString()}`
+        );
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(errorData.error || "Hotel search failed");
