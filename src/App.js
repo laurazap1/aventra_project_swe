@@ -13,6 +13,7 @@ import Paris from "./pages/Paris";
 import NYC from "./pages/NYC";
 import Santorini from "./pages/Santorini";
 import ThingsToDo from "./pages/ThingsToDo";
+import Chatbot from "./components/Chatbot"; // ADD THIS
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/santorini" element={<Santorini />} />
         </Routes>
       </div>
+      <Chatbot /> {/* ADD THIS */}
     </Router>
   );
 }
